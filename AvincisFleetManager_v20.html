@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestione Elicotteri – Avincis</title>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #e0e0e0; display: flex; flex-direction: column; height: 100vh; }
+  header { background: #1a1d27; padding: 10px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 2px solid #20b2aa; flex-shrink:0; }
+  header h1 { font-size: 1.2rem; color: #20b2aa; font-weight: 700; letter-spacing: 1px; }
+  .save-indicator { font-size: 0.72rem; color: #1abc9c; margin-left: 12px; }
+  header span.clock { font-size: 0.82rem; color: #888; margin-left: auto; }
+  .tabs { display:flex; background:#1a1d27; border-bottom:1px solid #2a2d3a; flex-shrink:0; }
+  .tab { padding:10px 20px; font-size:0.84rem; cursor:pointer; color:#888; border-bottom:2px solid transparent; transition:all 0.2s; }
+  .tab.active { color:#20b2aa; border-bottom:2px solid #20b2aa; font-weight:700; }
+  .tab:hover { color:#20b2aa; }
+  .page { display:none; flex:1; overflow:hidden; }
+  .page.active { display:flex; }
+  .sidebar { width:340px; background:#1a1d27; border-right:1px solid #2a2d3a; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:12px; flex-shrink:0; }
+  .card { background:#22263a; border-radius:10px; padding:13px; border:1px solid #2e3250; }
+  .card h3 { font-size:0.84rem; color:#20b2aa; margin-bottom:9px; text-transform:uppercase; letter-spacing:0.5px; }
+  label { font-size:0.75rem; color:#aaa; display:block; margin-bottom:3px; margin-top:7px; }
+  input, select { width:100%; padding:6px 9px; border-radius:6px; border:1px solid #3a3d55; background:#13152b; color:#e0e0e0; font-size:0.8rem; outline:none; }
+  input[type=date] { color-scheme: dark; }
+  input:focus, select:focus { border-color:#20b2aa; }
+  .btn { padding:7px 12px; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600; width:100%; margin-top:7px; transition:background 0.2s; }
+  .btn-primary { background:#20b2aa; color:#fff; } .btn-primary:hover { background:#17918b; }
+  .btn-danger { background:#c0392b; color:#fff; } .btn-danger:hover { background:#a93226; }
+  .btn-warning { background:#d68910; color:#fff; } .btn-warning:hover { background:#b7770d; }
+  .btn-save { background:#1abc9c; color:#fff; } .btn-save:hover { background:#17a589; }
+  .heli-list { max-height:200px; overflow-y:auto; margin-top:6px; }
+  .heli-item { display:flex; justify-content:space-between; align-items:center; padding:5px 7px; border-radius:6px; background:#13152b; margin-bottom:4px; font-size:0.76rem; border:1px solid #2a2d3a; gap:4px; flex-wrap:wrap; cursor:pointer; transition:border-color 0.2s, background 0.2s; }
+  .heli-item:hover { border-color:#20b2aa; background:#1a2035; }
+  .heli-item .reg { color:#20b2aa; font-weight:700; min-width:60px; }
+  .heli-item .base-tag { background:#2e3250; padding:2px 5px; border-radius:4px; font-size:0.68rem; color:#ccc; max-width:85px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .badge-maint { background:#8B451333;color:#ffa07a;border:1px solid #8B451355;padding:2px 5px;border-radius:4px;font-size:0.68rem; }
+  .badge-op { background:#1abc9c33;color:#1abc9c;border:1px solid #1abc9c55;padding:2px 5px;border-radius:4px;font-size:0.68rem; }
+  .badge-mel { background:#d6891033;color:#f0a500;border:1px solid #d6891055;padding:2px 5px;border-radius:4px;font-size:0.68rem; }
+  .badge-aog { background:#c0392b33;color:#ff4444;border:1px solid #c0392b55;padding:2px 5px;border-radius:4px;font-size:0.68rem; }
+  .stats { display:flex; gap:5px; flex-wrap:wrap; }
+  .stat-box { flex:1; min-width:50px; background:#13152b; border-radius:8px; padding:7px 4px; text-align:center; border:1px solid #2a2d3a; }
+  .stat-box .num { font-size:1.2rem; font-weight:700; color:#20b2aa; }
+  .stat-box .lbl { font-size:0.57rem; color:#888; margin-top:2px; }
+  #map { flex:1; background:#0f1117; position:relative; }
+  .leaflet-popup-content-wrapper { background:#1a1d27; color:#e0e0e0; border:1px solid #20b2aa; border-radius:8px; }
+  .leaflet-popup-tip { background:#1a1d27; }
+  .popup-title { font-weight:700; color:#20b2aa; font-size:0.9rem; margin-bottom:4px; }
+  .popup-heli { font-size:0.76rem; padding:3px 0; border-bottom:1px solid #2a2d3a; }
+  .popup-heli:last-child { border-bottom:none; }
+  .legend { position:absolute; bottom:20px; left:10px; z-index:1000; background:#1a1d27ee; border:1px solid #2e3250; border-radius:8px; padding:9px 13px; font-size:0.72rem; }
+  .legend-item { display:flex; align-items:center; gap:7px; margin-bottom:4px; }
+  .legend-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+  /* ANALYTICS */
+  .analytics-page { flex:1; overflow-y:auto; padding:20px; background:#0f1117; display:flex; flex-direction:column; gap:16px; }
+  .analytics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+  .kpi-card { background:#22263a; border-radius:10px; padding:15px; border:1px solid #2e3250; text-align:center; }
+  .kpi-card .kpi-num { font-size:1.9rem; font-weight:700; }
+  .kpi-card .kpi-label { font-size:0.73rem; color:#888; margin-top:4px; }
+  .kpi-card .kpi-sub { font-size:0.68rem; color:#555; margin-top:2px; }
+  .analytics-table { width:100%; border-collapse:collapse; font-size:0.79rem; }
+  .analytics-table th { background:#22263a; color:#20b2aa; padding:9px 11px; text-align:left; border-bottom:2px solid #2e3250; font-size:0.73rem; text-transform:uppercase; }
+  .analytics-table td { padding:7px 11px; border-bottom:1px solid #1e2130; vertical-align:middle; }
+  .analytics-table tr:hover td { background:#1e2235; }
+  .days-bar-wrap { display:flex; align-items:center; gap:8px; }
+  .days-bar { height:8px; border-radius:4px; min-width:4px; }
+  .section-title { font-size:0.95rem; color:#20b2aa; font-weight:700; border-bottom:1px solid #2e3250; padding-bottom:6px; }
+  .history-row { background:#13152b; border-radius:6px; padding:7px 10px; margin-bottom:5px; font-size:0.75rem; border-left:3px solid #20b2aa; }
+  .history-row.aog-hist { border-left-color:#c0392b; }
+  .history-row.mel-hist { border-left-color:#f0a500; }
+  /* MODAL */
+  .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:#00000088; z-index:5000; display:none; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:#1a1d27; border:1px solid #20b2aa; border-radius:12px; padding:24px; width:420px; max-width:95vw; }
+  .modal h2 { color:#20b2aa; font-size:1rem; margin-bottom:16px; }
+  .modal-btns { display:flex; gap:8px; margin-top:16px; }
+  .modal-btns .btn { flex:1; margin-top:0; }
+  /* Colico log */
+  .colico-entry { background:#13152b; border-radius:8px; padding:10px 12px; margin-bottom:6px; border:1px solid #2e3250; font-size:0.78rem; }
+  .colico-entry .ce-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+  .colico-entry .ce-reg { color:#20b2aa; font-weight:700; }
+  .colico-entry .ce-days { font-weight:700; }
+  .colico-entry .ce-dates { color:#888; font-size:0.72rem; }
+  .ce-open { color:#ffa07a; } .ce-closed { color:#1abc9c; }
+  .info-panel { position:absolute; top:16px; right:16px; z-index:1000; background:#1a1d27ee; border:1px solid #20b2aa; border-radius:10px; padding:14px 16px; width:260px; display:none; font-size:0.8rem; box-shadow:0 4px 20px #00000088; }
+  .info-panel.visible { display:block; }
+  .info-panel .ip-title { color:#20b2aa; font-weight:700; font-size:0.95rem; margin-bottom:6px; }
+  .info-panel .ip-row { display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px solid #2a2d3a; }
+  .info-panel .ip-row:last-child { border-bottom:none; }
+  .info-panel .ip-label { color:#888; }
+  .info-panel .ip-value { color:#e0e0e0; font-weight:600; text-align:right; max-width:150px; }
+  .info-panel .ip-close { position:absolute; top:8px; right:10px; cursor:pointer; color:#555; font-size:0.85rem; }
+  .info-panel .ip-close:hover { color:#ff4444; }
+  .previs-entry { background:#13152b; border-radius:8px; padding:10px 12px; margin-bottom:6px; border:1px solid #2e3250; font-size:0.78rem; }
+  .previs-entry .pe-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-wrap:wrap; gap:6px; }
+  .previs-entry .pe-reg { color:#20b2aa; font-weight:700; }
+  .previs-in-ritardo { border-left:3px solid #ff4444; }
+  .previs-puntuale { border-left:3px solid #1abc9c; }
+  .previs-aperto-ok { border-left:3px solid #20b2aa; }
+  .previs-aperto-scaduto { border-left:3px solid #f0a500; }
+  .toast { position:fixed; bottom:20px; right:20px; background:#20b2aa; color:#fff; padding:9px 16px; border-radius:8px; font-size:0.82rem; font-weight:600; z-index:9999; display:none; animation:fadeIn 0.3s; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#1a1d27}::-webkit-scrollbar-thumb{background:#3a3d55;border-radius:3px}
+
+  /* ---- CHARTS COLICO ---- */
+  .charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:12px}
+  .chart-card{background:#22263a;border-radius:10px;padding:16px;border:1px solid #2e3250}
+  .chart-card h4{font-size:0.82rem;color:#20b2aa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;margin-top:0}
+  .chart-canvas-wrap{position:relative;height:210px}
+  .gauge-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:210px;gap:6px}
+  .gauge-num{font-size:3.8rem;font-weight:700;color:#ffa07a;line-height:1}
+  .gauge-sub-label{font-size:0.78rem;color:#888}
+  .gauge-bar-outer{width:100%;max-width:280px;height:14px;background:#13152b;border-radius:7px;overflow:hidden;margin-top:10px}
+  .gauge-bar-inner{height:100%;border-radius:7px;background:linear-gradient(90deg,#20b2aa,#ffa07a);transition:width 0.6s ease}
+  .gauge-minmax{display:flex;justify-content:space-between;width:100%;max-width:280px;font-size:0.68rem;color:#555;margin-top:2px}
+  .gauge-avg{display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#20b2aa;margin-top:8px}
+  .gauge-avg::before{content:'';display:inline-block;width:18px;height:2px;background:#20b2aa;border-radius:1px}
+  .gauge-tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+  .gauge-tag{background:#8B451322;border:1px solid #ffa07a55;border-radius:4px;padding:2px 8px;font-size:0.72rem;color:#ffa07a}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<header>
+  <svg width="30" height="30" viewBox="0 0 36 36"><circle cx="18" cy="18" r="18" fill="#20b2aa22"/><text x="18" y="24" text-anchor="middle" font-size="18" fill="#20b2aa">&#x1F681;</text></svg>
+  <h1>AVINCIS Fleet Manager</h1>
+  <div class="save-indicator" id="saveIndicator">&#x2713; Salvato</div>
+  <span class="clock" id="clock"></span>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('mapTab',this)">&#x1F5FA; Mappa Flotta</div>
+  <div class="tab" onclick="showTab('analyticsTab',this)">&#x1F4CA; Analisi & KPI</div>
+  <div class="tab" onclick="showTab('colicoTab',this)">&#x1F527; Registro Colico</div>
+  <div class="tab" onclick="showTab('previsTab',this)">&#x1F4C5; Previsionali</div>
+  <div class="tab" onclick="showTab('historyTab',this)">&#x1F4DC; Storico</div>
+</div>
+
+<!-- TAB MAPPA -->
+<div class="page active" id="mapTab">
+  <div class="sidebar">
+    <div class="stats">
+      <div class="stat-box"><div class="num" id="statTotal">0</div><div class="lbl">Totale</div></div>
+      <div class="stat-box"><div class="num" id="statMaint" style="color:#ffa07a">0</div><div class="lbl">Colico</div></div>
+      <div class="stat-box"><div class="num" id="statAOG" style="color:#ff4444">0</div><div class="lbl">AOG</div></div>
+      <div class="stat-box"><div class="num" id="statMEL" style="color:#f0a500">0</div><div class="lbl">MEL</div></div>
+      <div class="stat-box"><div class="num" id="statBases">0</div><div class="lbl">Basi</div></div>
+    </div>
+
+    <div class="card">
+      <h3>&#x1F4BE; Dati</h3>
+      <button class="btn btn-save" onclick="exportData()">&#x2B07; Esporta Backup JSON</button>
+      <label>Importa Backup</label>
+      <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="font-size:0.72rem;padding:4px;" />
+      <button class="btn btn-danger" onclick="resetToDefault()" style="margin-top:5px;">&#x21BA; Ripristina Default</button>
+    </div>
+
+    <div class="card">
+      <h3>&#x2795; Nuova Base</h3>
+      <label>Nome</label><input id="newBaseName" placeholder="Es. Venezia" />
+      <label>Latitudine</label><input id="newBaseLat" type="number" step="0.0001" placeholder="45.5055" />
+      <label>Longitudine</label><input id="newBaseLon" type="number" step="0.0001" placeholder="12.3516" />
+      <label>Tipo</label>
+      <select id="newBaseType">
+        <option value="operativa">Operativa</option>
+        <option value="manutenzione">Manutenzione (Colico)</option>
+        <option value="estera">Estera</option>
+      </select>
+      <button class="btn btn-primary" onclick="addBase()">Aggiungi Base</button>
+    </div>
+
+    <div class="card">
+      <h3>&#x1F5D1; Rimuovi Base</h3>
+      <select id="removeBaseSelect"></select>
+      <button class="btn btn-danger" onclick="removeBase()">Rimuovi Base</button>
+    </div>
+
+    <div class="card">
+      <h3>&#x1F681; Aggiungi Elicottero</h3>
+      <label>Registrazione</label><input id="newHeliReg" placeholder="I-XXXX" />
+      <label>Modello</label>
+      <select id="newHeliModel">
+        <option>MBB-BK117</option><option>AW169</option><option>AB139/AW139</option><option>A109/A119</option>
+      </select>
+      <label>Base</label><select id="newHeliBase"></select>
+      <label>Stato</label>
+      <select id="newHeliStatus">
+        <option value="operative">Operative</option>
+        <option value="maintenance">Base Maintenance @ Colico</option>
+        <option value="mel">Operative with OPEN MEL</option>
+        <option value="aog">AOG</option>
+      </select>
+      <button class="btn btn-primary" onclick="addHeli()">Aggiungi</button>
+    </div>
+
+    <div class="card">
+      <h3>&#x1F504; Sposta / Aggiorna</h3>
+      <label>Elicottero</label><select id="moveHeliSelect"></select>
+      <label>Nuova Base</label><select id="moveBaseSelect"></select>
+      <label>Nuovo Stato</label>
+      <select id="moveStatusSelect">
+        <option value="operative">Operative</option>
+        <option value="maintenance">Base Maintenance @ Colico</option>
+        <option value="mel">Operative with OPEN MEL</option>
+        <option value="aog">AOG</option>
+      </select>
+      <button class="btn btn-warning" onclick="moveHeli()">Aggiorna</button>
+    </div>
+
+    <div class="card">
+      <h3>&#x274C; Rimuovi Elicottero</h3>
+      <select id="removeHeliSelect"></select>
+      <button class="btn btn-danger" onclick="removeHeli()">Rimuovi</button>
+    </div>
+
+    <div class="card">
+      <h3>&#x1F4CB; Fleet</h3>
+      <input id="searchHeli" placeholder="&#x1F50D; Cerca..." style="margin-bottom:7px" oninput="renderHeliList()"/>
+      <div class="heli-list" id="heliList"></div>
+    </div>
+  </div>
+  <div id="map">
+    <div class="info-panel" id="infoPanel">
+      <span class="ip-close" onclick="document.getElementById('infoPanel').classList.remove('visible')">&#x2715;</span>
+      <div class="ip-title" id="ipTitle"></div>
+      <div id="ipBody"></div>
+    </div>
+    <div class="legend">
+      <div style="font-weight:700;color:#20b2aa;margin-bottom:5px;font-size:0.78rem;">LEGENDA</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#8B4513;border:2px solid #ffa07a"></div> Manutenzione Colico</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#20b2aa;border:2px solid #00e5d8"></div> Operativa</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#d68910;border:2px solid #f0a500"></div> Open MEL</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#c0392b;border:2px solid #ff4444"></div> AOG</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#8e44ad;border:2px solid #bf6fff"></div> Base Estera</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB ANALYTICS -->
+<div class="page" id="analyticsTab">
+  <div class="analytics-page" id="analyticsContent"></div>
+</div>
+
+<!-- TAB REGISTRO COLICO -->
+<div class="page" id="colicoTab">
+  <div class="analytics-page" id="colicoContent">
+    <div class="section-title">&#x1F527; Registro Ingressi/Uscite Colico</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
+      <div class="card" style="flex:1;min-width:280px;">
+        <h3>&#x2795; Nuovo Ingresso Colico</h3>
+        <label>Elicottero</label><select id="colicoHeliSelect"></select>
+        <label>Data Ingresso</label><input type="date" id="colicoDateIn" />
+        <label>Note (opzionale)</label><input id="colicoNote" placeholder="Es. check 500h, paintjob..." />
+        <button class="btn btn-primary" onclick="addColicoEntry()">Registra Ingresso</button>
+      </div>
+      <div class="card" style="flex:1;min-width:280px;">
+        <h3>&#x1F6AA; Registra Uscita</h3>
+        <label>Seleziona record aperto</label><select id="colicoOpenSelect"></select>
+        <label>Data Uscita</label><input type="date" id="colicoDateOut" />
+        <button class="btn btn-warning" onclick="closeColicoEntry()">Registra Uscita</button>
+      </div>
+    </div>
+    <div class="section-title" style="margin-top:4px;">&#x1F4CB; Storico Passaggi Colico</div>
+    <div style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <input id="filterColicoReg" placeholder="&#x1F50D; Filtra per registrazione..." style="width:220px;padding:6px 9px;border-radius:6px;border:1px solid #3a3d55;background:#13152b;color:#e0e0e0;font-size:0.78rem;" oninput="renderColicoLog()"/>
+      <label style="margin:0;display:flex;align-items:center;gap:6px;font-size:0.78rem;color:#aaa;">
+        <input type="checkbox" id="filterOpenOnly" onchange="renderColicoLog()" style="width:auto"> Solo aperti
+      </label>
+    </div>
+    <div id="colicoLog"></div>
+  </div>
+</div>
+
+<!-- TAB PREVISIONALI -->
+<div class="page" id="previsTab">
+  <div class="analytics-page" id="previsContent">
+    <div class="section-title">&#x1F4C5; Previsionali Uscita da Colico</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
+      <div class="card" style="flex:1;min-width:280px;">
+        <h3>&#x2795; Aggiungi / Aggiorna Previsionale</h3>
+        <label>Elicottero</label><select id="previsHeliSelect"></select>
+        <label>Data Uscita Prevista</label><input type="date" id="previsDateEst"/>
+        <label>Note (opzionale)</label><input id="previsNote" placeholder="Es. attesa ricambio, AOG part..."/>
+        <button class="btn btn-primary" onclick="addPrevis()">Salva Previsionale</button>
+      </div>
+      <div class="card" style="flex:1;min-width:280px;background:#13152b;border:1px dashed #2e3250;">
+        <h3 style="color:#555;">&#x2139; Uscita Effettiva</h3>
+        <p style="color:#666;font-size:0.78rem;margin-top:6px;">L'uscita effettiva si registra nel <b style="color:#888;">Registro Colico</b> (tab a sinistra) inserendo la <b style="color:#888;">Data Uscita</b>.<br><br>Il previsionale viene chiuso automaticamente con la stessa data.</p>
+      </div>
+    </div>
+    <!-- KPI ritardi -->
+    <div id="previsKPI"></div>
+    <div class="section-title" style="margin-top:4px;">&#x1F4CB; Storico Previsionali</div>
+    <div style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <input id="filterPrevisReg" placeholder="&#x1F50D; Filtra per registrazione..." style="width:220px;padding:6px 9px;border-radius:6px;border:1px solid #3a3d55;background:#13152b;color:#e0e0e0;font-size:0.78rem;" oninput="renderPrevisLog()"/>
+      <label style="margin:0;display:flex;align-items:center;gap:6px;font-size:0.78rem;color:#aaa;">
+        <input type="checkbox" id="filterOpenPrevis" onchange="renderPrevisLog()" style="width:auto"> Solo aperti
+      </label>
+    </div>
+    <div id="previsLog"></div>
+  </div>
+</div>
+
+<!-- TAB STORICO -->
+<div class="page" id="historyTab">
+  <div class="analytics-page" id="historyContent"></div>
+</div>
+
+<!-- MODAL EDIT COLICO -->
+<div class="modal-overlay" id="editColicoModal">
+  <div class="modal">
+    <h2>&#x270F;&#xFE0F; Modifica Record Colico</h2>
+    <input type="hidden" id="editColicoId"/>
+    <label>Elicottero</label><input id="editColicoReg" readonly style="color:#888"/>
+    <label>Data Ingresso</label><input type="date" id="editColicoIn"/>
+    <label>Data Uscita (lascia vuoto se ancora a Colico)</label><input type="date" id="editColicoOut"/>
+    <label>Note</label><input id="editColicoNoteField"/>
+    <div class="modal-btns">
+      <button class="btn btn-save" onclick="saveEditColico()">&#x2713; Salva</button>
+      <button class="btn btn-danger" onclick="deleteEditColico()">&#x1F5D1; Elimina</button>
+      <button class="btn" style="background:#2e3250;color:#aaa" onclick="closeModal()">Annulla</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== DEFAULT DATA =====================
+const DEFAULT_BASES=[
+  {name:"ANCONA",lat:43.6157,lon:13.5167,type:"operativa"},{name:"BERGAMO",lat:45.6736,lon:9.6614,type:"operativa"},
+  {name:"BOLOGNA",lat:44.5354,lon:11.2887,type:"operativa"},{name:"BOLZANO",lat:46.4983,lon:11.3548,type:"operativa"},
+  {name:"BRESCIA",lat:45.5416,lon:10.2118,type:"operativa"},{name:"BRESSANONE",lat:46.7168,lon:11.6565,type:"operativa"},
+  {name:"BRESSO",lat:45.5426,lon:9.2019,type:"operativa"},{name:"CIRO' MARINA",lat:39.3697,lon:17.1228,type:"operativa"},
+  {name:"COLICO",lat:46.1338,lon:9.3627,type:"manutenzione"},{name:"COMO",lat:45.8080,lon:9.0852,type:"operativa"},
+  {name:"FABRIANO",lat:43.3367,lon:12.9022,type:"operativa"},{name:"FALCONARA",lat:43.6166,lon:13.3720,type:"operativa"},
+  {name:"FIRENZE",lat:43.8096,lon:11.2051,type:"operativa"},{name:"FOLIGNO",lat:42.9557,lon:12.7025,type:"operativa"},
+  {name:"GROSSETO",lat:42.7594,lon:11.1128,type:"operativa"},{name:"L'AQUILA",lat:42.3498,lon:13.3995,type:"operativa"},
+  {name:"LAMPEDUSA",lat:35.4972,lon:12.6056,type:"operativa"},{name:"LASA",lat:46.6167,lon:10.7000,type:"operativa"},
+  {name:"MASSA",lat:44.0357,lon:10.1408,type:"operativa"},{name:"MESSINA",lat:38.1937,lon:15.5542,type:"operativa"},
+  {name:"PALERMO",lat:38.1807,lon:13.0908,type:"operativa"},{name:"PANTELLERIA",lat:36.8163,lon:11.9630,type:"operativa"},
+  {name:"PARMA",lat:44.8015,lon:10.3279,type:"operativa"},{name:"PAVULLO NEL FRIGNANO",lat:44.3390,lon:10.8344,type:"operativa"},
+  {name:"PESCARA",lat:42.4313,lon:14.1815,type:"operativa"},{name:"PIEVE DI CADORE",lat:46.4267,lon:12.3676,type:"operativa"},
+  {name:"RAVENNA",lat:44.4184,lon:12.2035,type:"operativa"},{name:"TREVISO",lat:45.6484,lon:12.1945,type:"operativa"},
+  {name:"VERONA",lat:45.3960,lon:10.8885,type:"operativa"},{name:"PEMBA (MOZ)",lat:-12.9667,lon:40.5167,type:"estera"}
+];
+const DEFAULT_FLEET=[
+  ["C9-HMQ","AB139/AW139","PEMBA (MOZ)","operative"],["C9-HMT","AB139/AW139","PEMBA (MOZ)","operative"],
+  ["C9-HMU","AB139/AW139","PEMBA (MOZ)","operative"],["EI-HNH","MBB-BK117","FOLIGNO","operative"],
+  ["I-AHTD","MBB-BK117","COLICO","maintenance"],["I-ANKO","MBB-BK117","FALCONARA","operative"],
+  ["I-ANUB","MBB-BK117","RAVENNA","operative"],["I-ATLS","MBB-BK117","BOLOGNA","operative"],
+  ["I-BBFI","AW169","MESSINA","operative"],["I-BBPE","AW169","COLICO","maintenance"],
+  ["I-BKUP","MBB-BK117","BERGAMO","operative"],["I-BRXA","MBB-BK117","COLICO","maintenance"],
+  ["I-CALA","MBB-BK117","FIRENZE","operative"],["I-HBCR","MBB-BK117","PAVULLO NEL FRIGNANO","operative"],
+  ["I-HECO","AB139/AW139","PALERMO","mel"],["I-HERC","AW169","PESCARA","operative"],
+  ["I-HFRT","MBB-BK117","BRESSO","operative"],["I-KLIO","AW169","FABRIANO","operative"],
+  ["I-KONA","AW169","COLICO","maintenance"],["I-KYRA","AW169","PESCARA","operative"],
+  ["I-LAQU","AB139/AW139","L'AQUILA","operative"],["I-LHCA","AW169","TREVISO","operative"],
+  ["I-LMBD","MBB-BK117","BERGAMO","operative"],["I-MVRK","AB139/AW139","COLICO","maintenance"],
+  ["I-PEBX","MBB-BK117","BRESSANONE","operative"],["I-PEBZ","MBB-BK117","BOLZANO","operative"],
+  ["I-PTAH","MBB-BK117","RAVENNA","operative"],["I-PTVR","MBB-BK117","VERONA","operative"],
+  ["I-RELO","A109/A119","CIRO' MARINA","operative"],["I-RJAH","AB139/AW139","BRESCIA","operative"],
+  ["I-ROAV","AB139/AW139","GROSSETO","mel"],["I-SETH","MBB-BK117","PARMA","aog"],
+  ["I-SLND","MBB-BK117","PIEVE DI CADORE","operative"],["I-SMBA","AW169","ANCONA","operative"],
+  ["I-SRNT","AB139/AW139","LAMPEDUSA","operative"],["I-SUEM","MBB-BK117","LASA","operative"],
+  ["I-SWRS","MBB-BK117","COLICO","maintenance"],["I-TIKE","AB139/AW139","COMO","operative"],
+  ["I-TOMS","AB139/AW139","MASSA","mel"],["I-VLTN","AB139/AW139","PANTELLERIA","operative"],
+  ["I-ZANL","MBB-BK117","MESSINA","operative"]
+];
+
+// ===================== STATO =====================
+let bases=[],helicopters=[],history=[],colicoLog=[],previsLog=[];
+let nextBaseId=1,nextHeliId=1,nextColicoId=1,nextPrevisId=1;
+let markers={};
+const STORAGE_KEY='avincis_fleet_v3';
+
+// ===================== TABS =====================
+function showTab(tabId,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  el.classList.add('active');
+  if(tabId==='analyticsTab') renderAnalytics();
+  if(tabId==='historyTab') renderHistory();
+  if(tabId==='colicoTab'){updateColicoSelects();renderColicoLog();}
+  if(tabId==='previsTab'){updatePrevisSelects();renderPrevisLog();}
+}
+
+// ===================== STORAGE =====================
+function saveToStorage(){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify({bases,helicopters,history,colicoLog,previsLog,nextBaseId,nextHeliId,nextColicoId,nextPrevisId}));
+  document.getElementById('saveIndicator').innerHTML='&#x2713; Salvato '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+}
+function loadFromStorage(){
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(!raw) return false;
+  try{
+    const d=JSON.parse(raw);
+    bases=d.bases;helicopters=d.helicopters;history=d.history||[];
+    colicoLog=d.colicoLog||[];previsLog=d.previsLog||[];
+    nextBaseId=d.nextBaseId;nextHeliId=d.nextHeliId;
+    nextColicoId=d.nextColicoId||1;nextPrevisId=d.nextPrevisId||1;
+    return true;
+  }catch(e){return false;}
+}
+function loadDefaults(){
+  bases=[];helicopters=[];history=[];colicoLog=[];previsLog=[];nextBaseId=1;nextHeliId=1;nextColicoId=1;nextPrevisId=1;
+  DEFAULT_BASES.forEach(b=>bases.push({id:nextBaseId++,...b}));
+  const now=new Date().toISOString();
+  DEFAULT_FLEET.forEach(([reg,model,baseName,status])=>{
+    const base=bases.find(b=>b.name===baseName);
+    if(base) helicopters.push({id:nextHeliId++,reg,model,baseId:base.id,status,statusSince:now});
+  });
+}
+function resetToDefault(){
+  if(!confirm('Sei sicuro? Tutti i dati verranno persi.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  loadDefaults();saveToStorage();refresh();showToast('Dati ripristinati');
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify({bases,helicopters,history,colicoLog,nextBaseId,nextHeliId,nextColicoId,exportDate:new Date().toISOString()},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='avincis_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  showToast('Backup esportato!');
+}
+function importData(event){
+  const file=event.target.files[0];if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const d=JSON.parse(e.target.result);
+      bases=d.bases;helicopters=d.helicopters;history=d.history||[];
+      colicoLog=d.colicoLog||[];previsLog=d.previsLog||[];
+      nextBaseId=d.nextBaseId||999;nextHeliId=d.nextHeliId||999;
+      nextColicoId=d.nextColicoId||999;nextPrevisId=d.nextPrevisId||999;
+      saveToStorage();refresh();showToast('Backup importato!');
+    }catch{showToast('Errore file JSON');}
+  };
+  reader.readAsText(file);event.target.value='';
+}
+
+// ===================== COLICO LOG =====================
+function updateColicoSelects(){
+  // tutti gli elicotteri
+  const sel=document.getElementById('colicoHeliSelect');
+  const prev=sel.value; sel.innerHTML='';
+  helicopters.forEach(h=>{
+    const o=document.createElement('option');o.value=h.reg;o.textContent=h.reg+' ('+h.model+')';sel.appendChild(o);
+  });
+  if(prev) sel.value=prev;
+
+  // record aperti (senza data uscita)
+  const sel2=document.getElementById('colicoOpenSelect');
+  const prev2=sel2.value; sel2.innerHTML='';
+  const openEntries=colicoLog.filter(e=>!e.dateOut);
+  if(!openEntries.length){
+    const o=document.createElement('option');o.textContent='Nessun record aperto';sel2.appendChild(o);
+  } else {
+    openEntries.forEach(e=>{
+      const o=document.createElement('option');o.value=e.id;
+      o.textContent=e.reg+' — ingresso '+fmtDate(e.dateIn);
+      sel2.appendChild(o);
+    });
+    if(prev2) sel2.value=prev2;
+  }
+}
+
+function addColicoEntry(){
+  const reg=document.getElementById('colicoHeliSelect').value;
+  const dateIn=document.getElementById('colicoDateIn').value;
+  const note=document.getElementById('colicoNote').value.trim();
+  if(!reg||!dateIn){showToast('Seleziona elicottero e data ingresso');return;}
+  const heli=helicopters.find(h=>h.reg===reg);
+  colicoLog.unshift({id:nextColicoId++,reg,model:heli?heli.model:'',dateIn,dateOut:null,note});
+  document.getElementById('colicoDateIn').value='';
+  document.getElementById('colicoNote').value='';
+  saveToStorage();updateColicoSelects();renderColicoLog();
+  showToast(reg+' ingresso Colico registrato');
+}
+
+function closeColicoEntry(){
+  const id=parseInt(document.getElementById('colicoOpenSelect').value);
+  const dateOut=document.getElementById('colicoDateOut').value;
+  if(!id||!dateOut){showToast('Seleziona record e data uscita');return;}
+  const entry=colicoLog.find(e=>e.id===id);
+  if(!entry){showToast('Record non trovato');return;}
+  if(dateOut<entry.dateIn){showToast('Data uscita precedente all ingresso');return;}
+  entry.dateOut=dateOut;
+  // Chiudi automaticamente il previsionale aperto per questo elicottero
+  const openPrevis=previsLog.find(p=>p.reg===entry.reg && !p.dateActual);
+  let previsMsg='';
+  if(openPrevis){
+    openPrevis.dateActual=dateOut;
+    const delay=calcDelayDays(openPrevis.dateEst,dateOut);
+    if(delay>0) previsMsg=' | Previsionale: +'+delay+'gg ritardo';
+    else if(delay<0) previsMsg=' | Previsionale: '+Math.abs(delay)+'gg anticipo';
+    else previsMsg=' | Previsionale: puntuale';
+  }
+  document.getElementById('colicoDateOut').value='';
+  saveToStorage();updateColicoSelects();renderColicoLog();
+  showToast(entry.reg+' — '+calcDays(entry.dateIn,entry.dateOut)+' gg a Colico'+previsMsg);
+}
+
+function calcDays(dateIn,dateOut){
+  const end=dateOut?new Date(dateOut):new Date();
+  return Math.floor((end-new Date(dateIn))/86400000);
+}
+function fmtDate(d){
+  if(!d) return '—';
+  const p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];
+}
+
+function renderColicoLog(){
+  const q=(document.getElementById('filterColicoReg').value||'').toLowerCase();
+  const openOnly=document.getElementById('filterOpenOnly').checked;
+  const container=document.getElementById('colicoLog');
+  let entries=colicoLog.filter(e=>{
+    if(q && !e.reg.toLowerCase().includes(q)) return false;
+    if(openOnly && e.dateOut) return false;
+    return true;
+  });
+
+  if(!entries.length){container.innerHTML='<div style="color:#555;font-size:0.82rem;margin-top:8px;">Nessun record trovato.</div>';return;}
+
+  // stats quick
+  const totalDays=entries.filter(e=>e.dateOut).reduce((s,e)=>s+calcDays(e.dateIn,e.dateOut),0);
+  const avgDays=entries.filter(e=>e.dateOut).length?Math.round(totalDays/entries.filter(e=>e.dateOut).length):0;
+  let statsHtml=`<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+    <div class="stat-box" style="min-width:100px"><div class="num">${entries.length}</div><div class="lbl">Record</div></div>
+    <div class="stat-box" style="min-width:100px"><div class="num" style="color:#ffa07a">${entries.filter(e=>!e.dateOut).length}</div><div class="lbl">Ancora a Colico</div></div>
+    <div class="stat-box" style="min-width:100px"><div class="num" style="color:#1abc9c">${entries.filter(e=>e.dateOut).length}</div><div class="lbl">Usciti</div></div>
+    <div class="stat-box" style="min-width:100px"><div class="num" style="color:#888">${avgDays}</div><div class="lbl">Media Giorni</div></div>
+  </div>`;
+
+  let html=statsHtml;
+  entries.forEach(e=>{
+    const days=calcDays(e.dateIn,e.dateOut);
+    const isOpen=!e.dateOut;
+    const dayColor=days>60?'#ff4444':days>30?'#f0a500':days>14?'#d68910':'#1abc9c';
+    html+=`<div class="colico-entry">
+      <div class="ce-header">
+        <span class="ce-reg">&#x1F681; ${e.reg}</span>
+        <span style="color:#888;font-size:0.72rem">${e.model}</span>
+        <span class="ce-days ${isOpen?'ce-open':'ce-closed'}" style="color:${isOpen?'#ffa07a':dayColor}">
+          ${isOpen?'&#x1F534;':''} ${days} giorni ${isOpen?'(in corso)':'totali'}
+        </span>
+        <button onclick="openEditColico(${e.id})" style="background:#2e3250;border:none;color:#aaa;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72rem;">&#x270F; Modifica</button>
+      </div>
+      <div class="ce-dates">
+        &#x2192; Ingresso: <b>${fmtDate(e.dateIn)}</b>
+        &nbsp;&nbsp;
+        &#x2190; Uscita: <b>${e.dateOut?fmtDate(e.dateOut):'<span style="color:#ffa07a">ancora a Colico</span>'}</b>
+        ${e.note?`&nbsp;&nbsp; &#x1F4DD; <i style="color:#777">${e.note}</i>`:''}
+      </div>
+    </div>`;
+  });
+  container.innerHTML=html;
+}
+
+// MODAL EDIT
+function openEditColico(id){
+  const e=colicoLog.find(x=>x.id===id);if(!e) return;
+  document.getElementById('editColicoId').value=id;
+  document.getElementById('editColicoReg').value=e.reg+' ('+e.model+')';
+  document.getElementById('editColicoIn').value=e.dateIn||'';
+  document.getElementById('editColicoOut').value=e.dateOut||'';
+  document.getElementById('editColicoNoteField').value=e.note||'';
+  document.getElementById('editColicoModal').classList.add('open');
+}
+function closeModal(){document.getElementById('editColicoModal').classList.remove('open');}
+function saveEditColico(){
+  const id=parseInt(document.getElementById('editColicoId').value);
+  const e=colicoLog.find(x=>x.id===id);if(!e) return;
+  const dateIn=document.getElementById('editColicoIn').value;
+  const dateOut=document.getElementById('editColicoOut').value;
+  const note=document.getElementById('editColicoNoteField').value;
+  if(!dateIn){showToast('Data ingresso obbligatoria');return;}
+  if(dateOut && dateOut<dateIn){showToast('Data uscita precedente all ingresso');return;}
+  e.dateIn=dateIn;e.dateOut=dateOut||null;e.note=note;
+  saveToStorage();updateColicoSelects();renderColicoLog();closeModal();
+  showToast('Record aggiornato');
+}
+function deleteEditColico(){
+  const id=parseInt(document.getElementById('editColicoId').value);
+  if(!confirm('Eliminare questo record?')) return;
+  colicoLog=colicoLog.filter(x=>x.id!==id);
+  saveToStorage();updateColicoSelects();renderColicoLog();closeModal();
+  showToast('Record eliminato');
+}
+
+// ===================== HISTORY =====================
+function addHistory(reg,model,fromStatus,toStatus,fromBase,toBase){
+  history.unshift({date:new Date().toISOString(),reg,model,fromStatus,toStatus,fromBase,toBase});
+  if(history.length>500) history=history.slice(0,500);
+}
+function daysSince(iso){if(!iso) return 0;return Math.floor((Date.now()-new Date(iso).getTime())/86400000);}
+
+// ===================== MAPPA =====================
+const map=L.map('map').setView([20,20],3);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+  attribution:'© Esri, Maxar, Earthstar Geographics',maxZoom:19}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{
+  attribution:'',maxZoom:19,opacity:0.8}).addTo(map);
+
+function getBaseColor(base,helis){
+  if(base.type==='manutenzione') return{fill:'#8B4513',border:'#ffa07a'};
+  if(base.type==='estera') return{fill:'#8e44ad',border:'#bf6fff'};
+  if(helis.some(h=>h.status==='aog')) return{fill:'#c0392b',border:'#ff4444'};
+  if(helis.some(h=>h.status==='mel')) return{fill:'#d68910',border:'#f0a500'};
+  return{fill:'#20b2aa',border:'#00e5d8'};
+}
+function makeIcon(count,color){
+  return L.divIcon({html:`<svg xmlns="http://www.w3.org/2000/svg" width="46" height="56" viewBox="0 0 46 56">
+    <ellipse cx="23" cy="22" rx="21" ry="21" fill="${color.fill}cc" stroke="${color.border}" stroke-width="2.5"/>
+    <text x="23" y="17" text-anchor="middle" font-size="15">&#x1F681;</text>
+    <text x="23" y="30" text-anchor="middle" font-size="11" fill="white" font-weight="bold">${count}</text>
+    <polygon points="23,43 18,53 28,53" fill="${color.fill}cc" stroke="${color.border}" stroke-width="1.5"/>
+  </svg>`,className:'',iconSize:[46,56],iconAnchor:[23,53],popupAnchor:[0,-52]});
+}
+function statusBadge(s){
+  if(s==='maintenance') return'<span class="badge-maint">&#x1F527; Mnt</span>';
+  if(s==='mel') return'<span class="badge-mel">&#x26A0; MEL</span>';
+  if(s==='aog') return'<span class="badge-aog">&#x1F6A8; AOG</span>';
+  return'<span class="badge-op">&#x2705; Op</span>';
+}
+function statusLabel(s){
+  if(s==='maintenance') return'Maintenance Colico';if(s==='mel') return'Open MEL';
+  if(s==='aog') return'AOG';return'Operative';
+}
+function statusColor(s){
+  if(s==='aog') return'#ff4444';if(s==='maintenance') return'#ffa07a';
+  if(s==='mel') return'#f0a500';return'#1abc9c';
+}
+function updateMap(){
+  Object.values(markers).forEach(m=>map.removeLayer(m));markers={};
+  bases.forEach(base=>{
+    const helis=helicopters.filter(h=>h.baseId===base.id);
+    if(!helis.length) return;
+    const color=getBaseColor(base,helis);
+    const m=L.marker([base.lat,base.lon],{icon:makeIcon(helis.length,color)}).addTo(map);
+    let popup=`<div class="popup-title">&#x1F3E0; ${base.name}</div>`;
+    popup+=`<div style="font-size:0.7rem;color:#888;margin-bottom:5px;">${base.type==='manutenzione'?'&#x1F527; Manutenzione':base.type==='estera'?'&#x1F30D; Estera':'&#x2708; Operativa'} &middot; ${helis.length} ac</div>`;
+    helis.forEach(h=>{
+      const days=daysSince(h.statusSince);
+      const dStr=(h.status==='maintenance'||h.status==='aog')?` <span style="color:#aaa;font-size:0.68rem">(${days}gg)</span>`:'';
+      popup+=`<div class="popup-heli"><b style="color:#20b2aa">${h.reg}</b> <span style="color:#aaa;font-size:0.7rem">${h.model}</span> ${statusBadge(h.status)}${dStr}</div>`;
+    });
+    m.bindPopup(popup,{maxWidth:300});markers[base.id]=m;
+  });
+}
+function updateSelects(){
+  ['removeBaseSelect','newHeliBase','moveBaseSelect'].forEach(id=>{
+    const el=document.getElementById(id);const prev=el.value;el.innerHTML='';
+    bases.forEach(b=>{const o=document.createElement('option');o.value=b.id;o.textContent=b.name;el.appendChild(o);});
+    if(prev) el.value=prev;
+  });
+  ['moveHeliSelect','removeHeliSelect'].forEach(id=>{
+    const el=document.getElementById(id);const prev=el.value;el.innerHTML='';
+    helicopters.forEach(h=>{
+      const o=document.createElement('option');o.value=h.id;
+      const base=bases.find(b=>b.id===h.baseId);
+      o.textContent=h.reg+' ('+h.model+') @ '+(base?base.name:'?');
+      el.appendChild(o);
+    });
+    if(prev) el.value=prev;
+  });
+}
+function renderHeliList(){
+  const q=document.getElementById('searchHeli').value.toLowerCase();
+  const list=document.getElementById('heliList');list.innerHTML='';
+  helicopters.filter(h=>h.reg.toLowerCase().includes(q)||h.model.toLowerCase().includes(q)).forEach(h=>{
+    const base=bases.find(b=>b.id===h.baseId);
+    const days=daysSince(h.statusSince);
+    const dStr=(h.status==='maintenance'||h.status==='aog')?`<span style="color:#888;font-size:0.65rem">${days}gg</span>`:'';
+    const item=document.createElement('div');
+    item.className='heli-item';
+    item.innerHTML=`<span class="reg">${h.reg}</span>
+      <span style="color:#aaa;font-size:0.7rem">${h.model}</span>
+      <span class="base-tag" title="${base?base.name:''}">${base?base.name.split(' ')[0]:'?'}</span>
+      ${statusBadge(h.status)} ${dStr}`;
+    item.onclick=()=>focusHeli(h.id);
+    list.appendChild(item);
+  });
+}
+
+function focusHeli(heliId){
+  const h=helicopters.find(x=>x.id===heliId);if(!h) return;
+  const base=bases.find(b=>b.id===h.baseId);if(!base) return;
+  // Zoom mappa
+  map.flyTo([base.lat,base.lon],10,{duration:1.2});
+  // Apri popup marker
+  setTimeout(()=>{
+    const m=markers[base.id];
+    if(m){m.openPopup();}
+  },1300);
+  // Info panel
+  const days=daysSince(h.statusSince);
+  const since=h.statusSince?new Date(h.statusSince).toLocaleDateString('it-IT'):'N/D';
+  // Colico log per questo elicottero
+  const colicoEntries=colicoLog.filter(e=>e.reg===h.reg);
+  const totalColicoDays=colicoEntries.filter(e=>e.dateOut).reduce((s,e)=>s+calcDays(e.dateIn,e.dateOut),0);
+  const statusLabels={operative:'&#x2705; Operative',maintenance:'&#x1F527; Maintenance Colico',mel:'&#x26A0;&#xFE0F; Open MEL',aog:'&#x1F6A8; AOG'};
+  const statusColors={operative:'#1abc9c',maintenance:'#ffa07a',mel:'#f0a500',aog:'#ff4444'};
+  // Giorni a Colico: usa date manuali se disponibili
+  let displayDays = days;
+  let displaySince = since;
+  let fonte = '&#x23F1; sistema';
+  if(h.status === 'maintenance'){
+    const openEntry = colicoLog.find(e => e.reg === h.reg && !e.dateOut);
+    const closedEntry = colicoLog.filter(e => e.reg === h.reg && e.dateOut).sort((a,b)=>b.dateIn.localeCompare(a.dateIn))[0];
+    if(openEntry){
+      displayDays = calcDays(openEntry.dateIn, null);
+      displaySince = fmtDate(openEntry.dateIn);
+      fonte = '&#x270F; manuale';
+    } else if(closedEntry){
+      displayDays = calcDays(closedEntry.dateIn, closedEntry.dateOut);
+      displaySince = fmtDate(closedEntry.dateIn) + ' → ' + fmtDate(closedEntry.dateOut);
+      fonte = '&#x270F; manuale';
+    }
+  }
+
+  document.getElementById('ipTitle').innerHTML='&#x1F681; '+h.reg;
+  document.getElementById('ipBody').innerHTML=`
+    <div class="ip-row"><span class="ip-label">Modello</span><span class="ip-value">${h.model}</span></div>
+    <div class="ip-row"><span class="ip-label">Base attuale</span><span class="ip-value">${base.name}</span></div>
+    <div class="ip-row"><span class="ip-label">Stato</span><span class="ip-value" style="color:${statusColors[h.status]}">${statusLabels[h.status]||h.status}</span></div>
+    <div class="ip-row"><span class="ip-label">Giorni in stato</span><span class="ip-value">${displayDays} gg <span style="color:#555;font-size:0.7rem">(${fonte})</span></span></div>
+    <div class="ip-row"><span class="ip-label">Dal</span><span class="ip-value">${displaySince}</span></div>
+    <div class="ip-row"><span class="ip-label">Soste Colico</span><span class="ip-value">${colicoEntries.length} (${totalColicoDays} gg tot.)</span></div>
+    ${colicoEntries.length && !colicoEntries[0].dateOut?'<div class="ip-row"><span class="ip-label">Ingresso Colico</span><span class="ip-value" style="color:#ffa07a">'+fmtDate(colicoEntries[0].dateIn)+' (aperto)</span></div>':''}
+  `;
+  document.getElementById('infoPanel').classList.add('visible');
+}
+function updateStats(){
+  document.getElementById('statTotal').textContent=helicopters.length;
+  document.getElementById('statMaint').textContent=helicopters.filter(h=>h.status==='maintenance').length;
+  document.getElementById('statAOG').textContent=helicopters.filter(h=>h.status==='aog').length;
+  document.getElementById('statMEL').textContent=helicopters.filter(h=>h.status==='mel').length;
+  document.getElementById('statBases').textContent=bases.filter(b=>helicopters.some(h=>h.baseId===b.id)).length;
+}
+
+// ===================== ANALYTICS =====================
+function renderAnalytics() {
+  const maintH = helicopters.filter(h => h.status === 'maintenance');
+  const aogH   = helicopters.filter(h => h.status === 'aog');
+  const melH   = helicopters.filter(h => h.status === 'mel');
+  const opH    = helicopters.filter(h => h.status === 'operative');
+
+  function getColicoDaysManual(reg) {
+    const open = colicoLog.find(e => e.reg === reg && !e.dateOut);
+    if (open) return calcDays(open.dateIn, null);
+    const closed = colicoLog.filter(e => e.reg === reg && e.dateOut).sort((a,b) => b.dateIn.localeCompare(a.dateIn));
+    if (closed.length) return calcDays(closed[0].dateIn, closed[0].dateOut);
+    return null;
+  }
+  function getColicoDateManual(reg) {
+    const open = colicoLog.find(e => e.reg === reg && !e.dateOut);
+    if (open) return open.dateIn;
+    const closed = colicoLog.filter(e => e.reg === reg && e.dateOut).sort((a,b) => b.dateIn.localeCompare(a.dateIn));
+    if (closed.length) return closed[0].dateIn;
+    return null;
+  }
+
+  const maintDays = maintH.map(h => { const m = getColicoDaysManual(h.reg); return m !== null ? m : daysSince(h.statusSince); });
+  const avgM = maintH.length ? Math.round(maintDays.reduce((s,d)=>s+d,0)/maintH.length) : 0;
+  const closedEntries = colicoLog.filter(e => e.dateOut);
+  const avgColico = closedEntries.length ? Math.round(closedEntries.reduce((s,e)=>s+calcDays(e.dateIn,e.dateOut),0)/closedEntries.length) : 0;
+  const maxColico = closedEntries.length ? Math.max(...closedEntries.map(e=>calcDays(e.dateIn,e.dateOut))) : 0;
+  const totalAOGdays = aogH.reduce((s,h)=>s+daysSince(h.statusSince),0);
+
+  function buildMonthlyTrend() {
+    const now = new Date();
+    const months = [];
+    for (let i = 9; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ year:d.getFullYear(), month:d.getMonth(), label:d.toLocaleDateString('it-IT',{month:'short',year:'2-digit'}) });
+    }
+    const data = months.map(m => {
+      const mStart = new Date(m.year, m.month, 1);
+      const mEnd   = new Date(m.year, m.month+1, 0);
+      const set = new Set();
+      colicoLog.forEach(e => {
+        const inn = new Date(e.dateIn);
+        const out = e.dateOut ? new Date(e.dateOut) : new Date();
+        if (inn <= mEnd && out >= mStart) set.add(e.reg);
+      });
+      const now2 = new Date();
+      if (m.year===now2.getFullYear() && m.month===now2.getMonth()) {
+        maintH.forEach(h => set.add(h.reg));
+      }
+      return set.size;
+    });
+    return { labels: months.map(m=>m.label), data };
+  }
+  const trend = buildMonthlyTrend();
+
+  const modelCount = {};
+  maintH.forEach(h => { modelCount[h.model] = (modelCount[h.model]||0)+1; });
+  const modelLabels = Object.keys(modelCount);
+  const modelData   = Object.values(modelCount);
+  const modelColors = ['#20b2aa','#ffa07a','#f0a500','#bf6fff','#ff4444','#1abc9c'];
+
+  // Media ac a Colico negli ultimi 3 mesi (da trend)
+  function getAvg3Months() {
+    const now = new Date();
+    let total = 0;
+    for (let i = 1; i <= 3; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mStart = new Date(d.getFullYear(), d.getMonth(), 1);
+      const mEnd   = new Date(d.getFullYear(), d.getMonth()+1, 0);
+      const set = new Set();
+      colicoLog.forEach(e => {
+        const inn = new Date(e.dateIn);
+        const out = e.dateOut ? new Date(e.dateOut) : new Date();
+        if (inn <= mEnd && out >= mStart) set.add(e.reg);
+      });
+      total += set.size;
+    }
+    return (total / 3).toFixed(1);
+  }
+  const avg3m = getAvg3Months();
+  const pct = helicopters.length ? Math.round(opH.length/helicopters.length*100) : 0;
+  const gaugeWidth = helicopters.length ? Math.min(maintH.length/helicopters.length*100,100) : 0;
+
+  let html = `
+  <div class="section-title">📊 KPI Flotta — ${new Date().toLocaleDateString('it-IT')}</div>
+  <div style="font-size:0.72rem;color:#20b2aa88;margin-bottom:10px;">ℹ I giorni a Colico sono calcolati dalle date inserite nel Registro Colico.</div>
+  <div class="analytics-grid">
+    <div class="kpi-card"><div class="kpi-num" style="color:#ffa07a">${maintH.length}</div><div class="kpi-label">In Manutenzione Colico</div><div class="kpi-sub">Media attuale ${avgM} gg</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#ff4444">${aogH.length}</div><div class="kpi-label">AOG Attivi</div><div class="kpi-sub">${totalAOGdays} gg totali fermi</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#f0a500">${melH.length}</div><div class="kpi-label">Open MEL</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#1abc9c">${opH.length}</div><div class="kpi-label">Operative</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#888">${pct}%</div><div class="kpi-label">Disponibilità</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#20b2aa">${avgColico}</div><div class="kpi-label">Media gg Colico storico</div><div class="kpi-sub">${closedEntries.length} soste completate</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#c0392b">${maxColico}</div><div class="kpi-label">Max gg a Colico storico</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#bf6fff">${avg3m}</div><div class="kpi-label">Media ac Colico</div><div class="kpi-sub">Ultimi 3 mesi</div></div>
+  </div>
+
+  <div class="section-title" style="margin-top:20px;">📈 Grafici Colico</div>
+  <div class="charts-grid">
+
+    <div class="chart-card">
+      <h4>🔧 Presenze Attuali a Colico</h4>
+      <div class="gauge-wrap">
+        <div class="gauge-num">${maintH.length}</div>
+        <div class="gauge-sub-label">elicotteri in manutenzione ora</div>
+        <div class="gauge-bar-outer"><div class="gauge-bar-inner" style="width:${gaugeWidth}%"></div></div>
+        <div class="gauge-minmax"><span>0</span><span>${helicopters.length} totali flotta</span></div>
+        ${avgColico > 0 ? `<div class="gauge-avg">Media storica soste: <b style="color:#ffa07a;margin-left:4px">${avgColico} gg</b></div>` : ''}
+        <div class="gauge-tags">${maintH.map(h=>`<span class="gauge-tag">${h.reg}</span>`).join('')}</div>
+        <div style="margin-top:10px;font-size:0.75rem;color:#aaa;text-align:center">
+          Media ultimi 3 mesi: <b style="color:#bf6fff;font-size:1.1rem">${avg3m}</b> <span style="color:#555">ac/mese</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h4>✈️ Modelli a Colico</h4>
+      <div class="chart-canvas-wrap"><canvas id="chartModelli"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <h4>🌐 Status Flotta Totale (${helicopters.length} ac)</h4>
+      <div class="chart-canvas-wrap"><canvas id="chartStatus"></canvas></div>
+    </div>
+
+    <div class="chart-card" style="grid-column:1/-1">
+      <h4>📅 Trend Presenze a Colico — Ultimi 10 Mesi</h4>
+      <div class="chart-canvas-wrap" style="height:200px"><canvas id="chartTrend"></canvas></div>
+      ${colicoLog.length===0 ? '<div style="text-align:center;color:#555;font-size:0.73rem;margin-top:6px">Nessun dato nel Registro Colico. Il grafico si aggiorna automaticamente.</div>' : ''}
+    </div>
+
+  </div>`;
+
+  if (maintH.length) {
+    const sorted = [...maintH.map((h,i)=>({h,days:maintDays[i]}))].sort((a,b)=>b.days-a.days);
+    const maxD = Math.max(...sorted.map(x=>x.days),1);
+    html += `<div class="section-title" style="margin-top:20px;">🔧 Attualmente a Colico</div>
+    <table class="analytics-table"><thead><tr><th>Reg.</th><th>Modello</th><th>Giorni a Colico</th><th>Ingresso</th><th>Fonte</th></tr></thead><tbody>`;
+    sorted.forEach(({h,days}) => {
+      const col = days>30?'#f0a500':days>14?'#d68910':'#20b2aa';
+      const dateManual = getColicoDateManual(h.reg);
+      const hasManual  = colicoLog.some(e=>e.reg===h.reg);
+      const dateStr    = dateManual ? new Date(dateManual).toLocaleDateString('it-IT') : (h.statusSince ? new Date(h.statusSince).toLocaleDateString('it-IT') : 'N/D');
+      const fonte      = hasManual ? `<span style="color:#1abc9c;font-size:0.68rem">✏ Manuale</span>` : `<span style="color:#888;font-size:0.68rem">⏱ Sistema</span>`;
+      html += `<tr><td><b style="color:#20b2aa">${h.reg}</b></td><td>${h.model}</td>
+      <td><div class="days-bar-wrap"><div class="days-bar" style="width:${Math.round(days/maxD*120)}px;background:${col}"></div><span style="color:${col};font-weight:700">${days} gg</span></div></td>
+      <td style="color:#888;font-size:0.73rem">${dateStr}</td><td>${fonte}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+
+  if (aogH.length) {
+    html += `<div class="section-title" style="margin-top:20px;">🚨 AOG Attivi</div>
+    <table class="analytics-table"><thead><tr><th>Reg.</th><th>Modello</th><th>Base</th><th>Giorni AOG</th><th>Dal</th></tr></thead><tbody>`;
+    aogH.forEach(h => {
+      const base = bases.find(b=>b.id===h.baseId);
+      const days = daysSince(h.statusSince);
+      html += `<tr><td><b style="color:#ff4444">${h.reg}</b></td><td>${h.model}</td><td>${base?base.name:'?'}</td>
+      <td><span style="color:#ff4444;font-weight:700">${days} gg</span></td>
+      <td style="color:#888;font-size:0.73rem">${h.statusSince?new Date(h.statusSince).toLocaleDateString('it-IT'):'N/D'}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+
+  if (melH.length) {
+    html += `<div class="section-title" style="margin-top:20px;">⚠ Open MEL</div>
+    <table class="analytics-table"><thead><tr><th>Reg.</th><th>Modello</th><th>Base</th><th>Giorni MEL</th></tr></thead><tbody>`;
+    melH.forEach(h => {
+      const base = bases.find(b=>b.id===h.baseId);
+      html += `<tr><td><b style="color:#f0a500">${h.reg}</b></td><td>${h.model}</td><td>${base?base.name:'?'}</td>
+      <td><span style="color:#f0a500;font-weight:700">${daysSince(h.statusSince)} gg</span></td></tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+
+  document.getElementById('analyticsContent').innerHTML = html;
+
+  // ---- Chart.js renders ----
+  const ctxM = document.getElementById('chartModelli');
+  if (ctxM) {
+    if (modelLabels.length) {
+      new Chart(ctxM, {
+        type: 'bar',
+        data: {
+          labels: modelLabels,
+          datasets: [{ label:'Ac', data:modelData, backgroundColor:modelColors.slice(0,modelLabels.length), borderRadius:6, borderSkipped:false }]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:false} },
+          scales:{
+            x:{ ticks:{color:'#aaa'}, grid:{color:'#2e3250'} },
+            y:{ ticks:{color:'#aaa',stepSize:1}, grid:{color:'#2e3250'}, beginAtZero:true }
+          }
+        }
+      });
+    } else {
+      ctxM.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-size:0.8rem">Nessun ac a Colico</div>';
+    }
+  }
+
+  const ctxS = document.getElementById('chartStatus');
+  if (ctxS) {
+    new Chart(ctxS, {
+      type: 'doughnut',
+      data: {
+        labels: ['Operative','Manutenzione','Open MEL','AOG'],
+        datasets: [{
+          data: [opH.length, maintH.length, melH.length, aogH.length],
+          backgroundColor: ['#20b2aa','#ffa07a','#f0a500','#ff4444'],
+          borderColor: '#0f1117', borderWidth:2, hoverOffset:6
+        }]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{ position:'right', labels:{color:'#aaa',font:{size:11},padding:10} },
+          tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.raw} ac (${Math.round(ctx.raw/helicopters.length*100)}%)` } }
+        },
+        cutout:'55%'
+      }
+    });
+  }
+
+  const ctxT = document.getElementById('chartTrend');
+  if (ctxT) {
+    const trendLabels = trend.labels;
+    const trendData   = trend.data;
+    new Chart(ctxT, {
+      type: 'line',
+      data: {
+        labels: trendLabels,
+        datasets: [{
+          label: 'Ac a Colico',
+          data: trendData,
+          borderColor: '#ffa07a',
+          backgroundColor: 'rgba(255,160,122,0.10)',
+          fill: true, tension: 0.3,
+          pointRadius: 5, pointBackgroundColor: '#ffa07a',
+          borderWidth: 2.5, spanGaps: false
+        }]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{
+          x:{ ticks:{color:'#aaa',font:{size:11}}, grid:{color:'#2e3250'} },
+          y:{ ticks:{color:'#aaa',stepSize:1}, grid:{color:'#2e3250'}, beginAtZero:true, suggestedMax:10 }
+        }
+      }
+    });
+  }
+}
+
+
+function renderHistory(){
+  let html=`<div class="section-title">&#x1F4DC; Storico Movimenti (${history.length})</div>`;
+  if(!history.length){html+=`<div style="color:#666;font-size:0.82rem;margin-top:10px;">Nessun movimento registrato ancora.</div>`;}
+  history.forEach(e=>{
+    const date=new Date(e.date).toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'});
+    const cls=e.toStatus==='aog'?'aog-hist':e.toStatus==='mel'?'mel-hist':'';
+    const arrow=e.fromBase!==e.toBase?e.fromBase+' &#x2192; '+e.toBase:e.fromBase;
+    const statusChange=e.fromStatus!==e.toStatus?` | ${statusLabel(e.fromStatus)} &#x2192; <b style="color:${statusColor(e.toStatus)}">${statusLabel(e.toStatus)}</b>`:'';
+    html+=`<div class="history-row ${cls}">
+      <span style="color:#20b2aa;font-weight:700">${e.reg}</span>
+      <span style="color:#aaa;font-size:0.7rem"> ${e.model}</span>
+      <span style="color:#888">${statusChange}</span>
+      <span style="color:#666;font-size:0.7rem"> | ${arrow}</span>
+      <span style="float:right;color:#555;font-size:0.7rem">${date}</span>
+    </div>`;
+  });
+  document.getElementById('historyContent').innerHTML=html;
+}
+
+// ===================== AZIONI FLOTTA =====================
+function showToast(msg){
+  const t=document.getElementById('toast');t.innerHTML=msg;t.style.display='block';
+  setTimeout(()=>t.style.display='none',2800);
+}
+function refresh(){updateMap();updateSelects();renderHeliList();updateStats();}
+
+function addBase(){
+  const name=document.getElementById('newBaseName').value.trim().toUpperCase();
+  const lat=parseFloat(document.getElementById('newBaseLat').value);
+  const lon=parseFloat(document.getElementById('newBaseLon').value);
+  const type=document.getElementById('newBaseType').value;
+  if(!name||isNaN(lat)||isNaN(lon)){showToast('Compila tutti i campi');return;}
+  if(bases.some(b=>b.name===name)){showToast('Base gia esistente');return;}
+  bases.push({id:nextBaseId++,name,lat,lon,type});
+  document.getElementById('newBaseName').value='';document.getElementById('newBaseLat').value='';document.getElementById('newBaseLon').value='';
+  saveToStorage();refresh();showToast('Base '+name+' aggiunta');
+}
+function removeBase(){
+  const id=parseInt(document.getElementById('removeBaseSelect').value);
+  if(helicopters.some(h=>h.baseId===id)){showToast('Sposta prima gli elicotteri');return;}
+  const base=bases.find(b=>b.id===id);bases=bases.filter(b=>b.id!==id);
+  saveToStorage();refresh();showToast('Base '+base.name+' rimossa');
+}
+function addHeli(){
+  const reg=document.getElementById('newHeliReg').value.trim().toUpperCase();
+  const model=document.getElementById('newHeliModel').value;
+  const baseId=parseInt(document.getElementById('newHeliBase').value);
+  const status=document.getElementById('newHeliStatus').value;
+  if(!reg){showToast('Inserisci la registrazione');return;}
+  if(helicopters.some(h=>h.reg===reg)){showToast('Registrazione gia presente');return;}
+  const base=bases.find(b=>b.id===baseId);
+  helicopters.push({id:nextHeliId++,reg,model,baseId,status,statusSince:new Date().toISOString()});
+  addHistory(reg,model,'—',status,'—',base?base.name:'?');
+  document.getElementById('newHeliReg').value='';
+  saveToStorage();refresh();showToast(reg+' aggiunto');
+}
+function moveHeli(){
+  const heliId=parseInt(document.getElementById('moveHeliSelect').value);
+  const baseId=parseInt(document.getElementById('moveBaseSelect').value);
+  const status=document.getElementById('moveStatusSelect').value;
+  const heli=helicopters.find(h=>h.id===heliId);if(!heli) return;
+  const oldBase=bases.find(b=>b.id===heli.baseId);
+  const newBase=bases.find(b=>b.id===baseId);
+  addHistory(heli.reg,heli.model,heli.status,status,oldBase?oldBase.name:'?',newBase?newBase.name:'?');
+  heli.baseId=baseId;
+  if(heli.status!==status) heli.statusSince=new Date().toISOString();
+  heli.status=status;
+  saveToStorage();refresh();showToast(heli.reg+': '+oldBase.name+' > '+newBase.name);
+}
+function removeHeli(){
+  const id=parseInt(document.getElementById('removeHeliSelect').value);
+  const heli=helicopters.find(h=>h.id===id);
+  const base=bases.find(b=>b.id===heli.baseId);
+  addHistory(heli.reg,heli.model,heli.status,'rimosso',base?base.name:'?','—');
+  helicopters=helicopters.filter(h=>h.id!==id);
+  saveToStorage();refresh();showToast(heli.reg+' rimosso');
+}
+
+
+// ===================== PREVISIONALI =====================
+function updatePrevisSelects(){
+  // Tutti gli elicotteri (soprattutto quelli a Colico)
+  const sel=document.getElementById('previsHeliSelect');
+  const prev=sel.value; sel.innerHTML='';
+  // Prima mostra quelli a Colico, poi gli altri
+  const sorted=[...helicopters].sort((a,b)=>{
+    if(a.status==='maintenance' && b.status!=='maintenance') return -1;
+    if(b.status==='maintenance' && a.status!=='maintenance') return 1;
+    return a.reg.localeCompare(b.reg);
+  });
+  sorted.forEach(h=>{
+    const o=document.createElement('option');o.value=h.reg;
+    const tag=h.status==='maintenance'?' 🔧':'';
+    o.textContent=h.reg+' ('+h.model+')'+tag;
+    sel.appendChild(o);
+  });
+  if(prev) sel.value=prev;
+
+}
+
+function addPrevis(){
+  const reg=document.getElementById('previsHeliSelect').value;
+  const dateEst=document.getElementById('previsDateEst').value;
+  const note=document.getElementById('previsNote').value.trim();
+  if(!reg||!dateEst){showToast('Seleziona elicottero e data prevista');return;}
+  // Se esiste già un previsionale aperto per questo elicottero, aggiornalo
+  const existing=previsLog.find(e=>e.reg===reg && !e.dateActual);
+  if(existing){
+    existing.dateEst=dateEst;existing.note=note;
+    saveToStorage();updatePrevisSelects();renderPrevisLog();
+    showToast(reg+': previsionale aggiornato');return;
+  }
+  const heli=helicopters.find(h=>h.reg===reg);
+  previsLog.unshift({id:nextPrevisId++,reg,model:heli?heli.model:'',dateEst,dateActual:null,note,createdAt:new Date().toISOString().slice(0,10)});
+  document.getElementById('previsDateEst').value='';
+  document.getElementById('previsNote').value='';
+  saveToStorage();updatePrevisSelects();renderPrevisLog();
+  showToast(reg+': previsionale salvato');
+}
+
+
+
+function calcDelayDays(dateEst,dateActual){
+  // positivo = ritardo, negativo = anticipo
+  return Math.floor((new Date(dateActual)-new Date(dateEst))/86400000);
+}
+
+function renderPrevisLog(){
+  const q=(document.getElementById('filterPrevisReg').value||'').toLowerCase();
+  const openOnly=document.getElementById('filterOpenPrevis').checked;
+  const today=new Date().toISOString().slice(0,10);
+
+  let entries=previsLog.filter(e=>{
+    if(q && !e.reg.toLowerCase().includes(q)) return false;
+    if(openOnly && e.dateActual) return false;
+    return true;
+  });
+
+  // KPI ritardi
+  const closed=previsLog.filter(e=>e.dateActual);
+  const inRitardo=closed.filter(e=>calcDelayDays(e.dateEst,e.dateActual)>0);
+  const puntuali=closed.filter(e=>calcDelayDays(e.dateEst,e.dateActual)<=0);
+  const avgRitardo=inRitardo.length?Math.round(inRitardo.reduce((s,e)=>s+calcDelayDays(e.dateEst,e.dateActual),0)/inRitardo.length):0;
+  const maxRitardo=inRitardo.length?Math.max(...inRitardo.map(e=>calcDelayDays(e.dateEst,e.dateActual))):0;
+  const scadutiAperti=previsLog.filter(e=>!e.dateActual && e.dateEst<today);
+  const giorniRitardoAperti=scadutiAperti.reduce((s,e)=>s+calcDelayDays(e.dateEst,today),0);
+
+  const kpiHtml=`<div class="analytics-grid" style="margin:12px 0;">
+    <div class="kpi-card"><div class="kpi-num" style="color:#20b2aa">${previsLog.length}</div><div class="kpi-label">Totale Previsionali</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#ffa07a">${previsLog.filter(e=>!e.dateActual).length}</div><div class="kpi-label">Ancora Aperti</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#ff4444">${scadutiAperti.length}</div><div class="kpi-label">Scaduti (non usciti)</div><div class="kpi-sub">${giorniRitardoAperti} gg ritardo accumulato</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#ff4444">${inRitardo.length}</div><div class="kpi-label">Uscite in Ritardo</div><div class="kpi-sub">su ${closed.length} completati</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#888">${avgRitardo||'—'}</div><div class="kpi-label">Media gg Ritardo</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#c0392b">${maxRitardo||'—'}</div><div class="kpi-label">Max gg Ritardo</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#1abc9c">${puntuali.length}</div><div class="kpi-label">Puntuali / Anticipo</div></div>
+    <div class="kpi-card"><div class="kpi-num" style="color:#888">${closed.length?Math.round(puntuali.length/closed.length*100):0}%</div><div class="kpi-label">On-Time Performance</div></div>
+  </div>`;
+  document.getElementById('previsKPI').innerHTML=kpiHtml;
+
+  if(!entries.length){document.getElementById('previsLog').innerHTML='<div style="color:#555;font-size:0.82rem;margin-top:8px;">Nessun previsionale trovato.</div>';return;}
+
+  let html='';
+  entries.forEach(e=>{
+    const isClosed=!!e.dateActual;
+    const delay=isClosed?calcDelayDays(e.dateEst,e.dateActual):null;
+    const isScaduto=!isClosed && e.dateEst<today;
+    const giorniScaduto=isScaduto?calcDelayDays(e.dateEst,today):null;
+
+    let cssClass='previs-aperto-ok';
+    let statusHtml='';
+    if(isClosed){
+      if(delay>0){ cssClass='previs-in-ritardo'; statusHtml=`<span style="color:#ff4444;font-weight:700">&#x26A0; +${delay} gg ritardo</span>`; }
+      else if(delay<0){ cssClass='previs-puntuale'; statusHtml=`<span style="color:#1abc9c;font-weight:700">&#x2713; ${Math.abs(delay)} gg anticipo</span>`; }
+      else { cssClass='previs-puntuale'; statusHtml=`<span style="color:#1abc9c;font-weight:700">&#x2713; Puntuale</span>`; }
+    } else if(isScaduto){
+      cssClass='previs-aperto-scaduto';
+      statusHtml=`<span style="color:#f0a500;font-weight:700">&#x23F0; Scaduto da ${giorniScaduto} gg</span>`;
+    } else {
+      const daysLeft=calcDelayDays(today,e.dateEst);
+      statusHtml=`<span style="color:#20b2aa">&#x1F4C5; ${daysLeft} gg al previsto</span>`;
+    }
+
+    html+=`<div class="previs-entry ${cssClass}">
+      <div class="pe-header">
+        <span class="pe-reg">&#x1F681; ${e.reg}</span>
+        <span style="color:#888;font-size:0.72rem">${e.model}</span>
+        ${statusHtml}
+        <button onclick="openEditPrevis(${e.id})" style="background:#2e3250;border:none;color:#aaa;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72rem;">&#x270F; Modifica</button>
+      </div>
+      <div style="color:#888;font-size:0.73rem;">
+        &#x1F4C5; Previsto: <b style="color:#e0e0e0">${fmtDate(e.dateEst)}</b>
+        ${isClosed?`&nbsp;&nbsp; &#x2714; Effettivo: <b style="color:#e0e0e0">${fmtDate(e.dateActual)}</b>`:''}
+        ${e.note?`&nbsp;&nbsp; &#x1F4DD; <i style="color:#666">${e.note}</i>`:''}
+        &nbsp;&nbsp; <span style="color:#555;font-size:0.68rem">Inserito: ${fmtDate(e.createdAt)}</span>
+      </div>
+    </div>`;
+  });
+  document.getElementById('previsLog').innerHTML=html;
+}
+
+// Modal edit previsionale
+function openEditPrevis(id){
+  const e=previsLog.find(x=>x.id===id);if(!e) return;
+  const dateEst=prompt('Data uscita prevista (YYYY-MM-DD):',e.dateEst);
+  if(dateEst===null) return;
+  if(dateEst && !/^\d{4}-\d{2}-\d{2}$/.test(dateEst)){showToast('Formato data: YYYY-MM-DD');return;}
+  const note=prompt('Note:',e.note||'');
+  if(note===null) return;
+  if(dateEst) e.dateEst=dateEst;
+  e.note=note;
+  saveToStorage();renderPrevisLog();showToast('Previsionale aggiornato');
+}
+
+function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'});}
+setInterval(updateClock,1000);updateClock();
+
+// Imposta data di oggi di default nei campi date
+document.getElementById('colicoDateIn').value=new Date().toISOString().slice(0,10);
+document.getElementById('colicoDateOut').value=new Date().toISOString().slice(0,10);
+document.getElementById('previsDateEst').value=new Date().toISOString().slice(0,10);
+
+// INIT
+const loaded=loadFromStorage();
+if(!loaded){loadDefaults();saveToStorage();}
+refresh();
+</script>
+</body>
+</html>

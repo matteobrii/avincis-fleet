@@ -1,0 +1,727 @@
+{
+  "bases": [
+    {
+      "id": 1,
+      "name": "ANCONA",
+      "lat": 43.6157,
+      "lon": 13.5167,
+      "type": "operativa"
+    },
+    {
+      "id": 2,
+      "name": "BERGAMO",
+      "lat": 45.6736,
+      "lon": 9.6614,
+      "type": "operativa"
+    },
+    {
+      "id": 3,
+      "name": "BOLOGNA",
+      "lat": 44.5354,
+      "lon": 11.2887,
+      "type": "operativa"
+    },
+    {
+      "id": 4,
+      "name": "BOLZANO",
+      "lat": 46.4983,
+      "lon": 11.3548,
+      "type": "operativa"
+    },
+    {
+      "id": 5,
+      "name": "BRESCIA",
+      "lat": 45.5416,
+      "lon": 10.2118,
+      "type": "operativa"
+    },
+    {
+      "id": 6,
+      "name": "BRESSANONE",
+      "lat": 46.7168,
+      "lon": 11.6565,
+      "type": "operativa"
+    },
+    {
+      "id": 7,
+      "name": "BRESSO",
+      "lat": 45.5426,
+      "lon": 9.2019,
+      "type": "operativa"
+    },
+    {
+      "id": 8,
+      "name": "CIRO' MARINA",
+      "lat": 39.3697,
+      "lon": 17.1228,
+      "type": "operativa"
+    },
+    {
+      "id": 9,
+      "name": "COLICO",
+      "lat": 46.1338,
+      "lon": 9.3627,
+      "type": "manutenzione"
+    },
+    {
+      "id": 10,
+      "name": "COMO",
+      "lat": 45.808,
+      "lon": 9.0852,
+      "type": "operativa"
+    },
+    {
+      "id": 11,
+      "name": "FABRIANO",
+      "lat": 43.3367,
+      "lon": 12.9022,
+      "type": "operativa"
+    },
+    {
+      "id": 12,
+      "name": "FALCONARA",
+      "lat": 43.6166,
+      "lon": 13.372,
+      "type": "operativa"
+    },
+    {
+      "id": 13,
+      "name": "FIRENZE",
+      "lat": 43.8096,
+      "lon": 11.2051,
+      "type": "operativa"
+    },
+    {
+      "id": 14,
+      "name": "FOLIGNO",
+      "lat": 42.9557,
+      "lon": 12.7025,
+      "type": "operativa"
+    },
+    {
+      "id": 15,
+      "name": "GROSSETO",
+      "lat": 42.7594,
+      "lon": 11.1128,
+      "type": "operativa"
+    },
+    {
+      "id": 16,
+      "name": "L'AQUILA",
+      "lat": 42.3498,
+      "lon": 13.3995,
+      "type": "operativa"
+    },
+    {
+      "id": 17,
+      "name": "LAMPEDUSA",
+      "lat": 35.4972,
+      "lon": 12.6056,
+      "type": "operativa"
+    },
+    {
+      "id": 18,
+      "name": "LASA",
+      "lat": 46.6167,
+      "lon": 10.7,
+      "type": "operativa"
+    },
+    {
+      "id": 19,
+      "name": "MASSA",
+      "lat": 44.0357,
+      "lon": 10.1408,
+      "type": "operativa"
+    },
+    {
+      "id": 20,
+      "name": "MESSINA",
+      "lat": 38.1937,
+      "lon": 15.5542,
+      "type": "operativa"
+    },
+    {
+      "id": 21,
+      "name": "PALERMO",
+      "lat": 38.1807,
+      "lon": 13.0908,
+      "type": "operativa"
+    },
+    {
+      "id": 22,
+      "name": "PANTELLERIA",
+      "lat": 36.8163,
+      "lon": 11.963,
+      "type": "operativa"
+    },
+    {
+      "id": 23,
+      "name": "PARMA",
+      "lat": 44.8015,
+      "lon": 10.3279,
+      "type": "operativa"
+    },
+    {
+      "id": 24,
+      "name": "PAVULLO NEL FRIGNANO",
+      "lat": 44.339,
+      "lon": 10.8344,
+      "type": "operativa"
+    },
+    {
+      "id": 25,
+      "name": "PESCARA",
+      "lat": 42.4313,
+      "lon": 14.1815,
+      "type": "operativa"
+    },
+    {
+      "id": 26,
+      "name": "PIEVE DI CADORE",
+      "lat": 46.4267,
+      "lon": 12.3676,
+      "type": "operativa"
+    },
+    {
+      "id": 27,
+      "name": "RAVENNA",
+      "lat": 44.4184,
+      "lon": 12.2035,
+      "type": "operativa"
+    },
+    {
+      "id": 28,
+      "name": "TREVISO",
+      "lat": 45.6484,
+      "lon": 12.1945,
+      "type": "operativa"
+    },
+    {
+      "id": 29,
+      "name": "VERONA",
+      "lat": 45.396,
+      "lon": 10.8885,
+      "type": "operativa"
+    },
+    {
+      "id": 30,
+      "name": "PEMBA (MOZ)",
+      "lat": -12.9667,
+      "lon": 40.5167,
+      "type": "estera"
+    },
+    {
+      "id": 31,
+      "name": "PADOVA",
+      "lat": 45.408,
+      "lon": 11.886,
+      "type": "operativa"
+    },
+    {
+      "id": 33,
+      "name": "CAIOLO",
+      "lat": 46.1509444,
+      "lon": 9.8156296,
+      "type": "operativa"
+    }
+  ],
+  "helicopters": [
+    {
+      "id": 1,
+      "reg": "C9-HMQ",
+      "model": "AB139/AW139",
+      "baseId": 30,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 2,
+      "reg": "C9-HMT",
+      "model": "AB139/AW139",
+      "baseId": 30,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 3,
+      "reg": "C9-HMU",
+      "model": "AB139/AW139",
+      "baseId": 30,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 4,
+      "reg": "EI-HNH",
+      "model": "MBB-BK117",
+      "baseId": 14,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 5,
+      "reg": "I-AHTD",
+      "model": "MBB-BK117",
+      "baseId": 9,
+      "status": "maintenance",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 6,
+      "reg": "I-ANKO",
+      "model": "MBB-BK117",
+      "baseId": 12,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 7,
+      "reg": "I-ANUB",
+      "model": "MBB-BK117",
+      "baseId": 23,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 8,
+      "reg": "I-ATLS",
+      "model": "MBB-BK117",
+      "baseId": 3,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 9,
+      "reg": "I-BBFI",
+      "model": "AW169",
+      "baseId": 20,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 10,
+      "reg": "I-BBPE",
+      "model": "AW169",
+      "baseId": 9,
+      "status": "maintenance",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 11,
+      "reg": "I-BKUP",
+      "model": "MBB-BK117",
+      "baseId": 33,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 12,
+      "reg": "I-BRXA",
+      "model": "MBB-BK117",
+      "baseId": 9,
+      "status": "maintenance",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 13,
+      "reg": "I-CALA",
+      "model": "MBB-BK117",
+      "baseId": 13,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 14,
+      "reg": "I-HBCR",
+      "model": "MBB-BK117",
+      "baseId": 24,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 15,
+      "reg": "I-HECO",
+      "model": "AB139/AW139",
+      "baseId": 21,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:38:55.281Z"
+    },
+    {
+      "id": 16,
+      "reg": "I-HERC",
+      "model": "AW169",
+      "baseId": 31,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 17,
+      "reg": "I-HFRT",
+      "model": "MBB-BK117",
+      "baseId": 7,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 18,
+      "reg": "I-KLIO",
+      "model": "AW169",
+      "baseId": 11,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 19,
+      "reg": "I-KONA",
+      "model": "AW169",
+      "baseId": 9,
+      "status": "maintenance",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 20,
+      "reg": "I-KYRA",
+      "model": "AW169",
+      "baseId": 25,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 21,
+      "reg": "I-LAQU",
+      "model": "AB139/AW139",
+      "baseId": 16,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 22,
+      "reg": "I-LHCA",
+      "model": "AW169",
+      "baseId": 28,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 23,
+      "reg": "I-LMBD",
+      "model": "MBB-BK117",
+      "baseId": 2,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 24,
+      "reg": "I-MVRK",
+      "model": "AB139/AW139",
+      "baseId": 9,
+      "status": "maintenance",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 25,
+      "reg": "I-PEBX",
+      "model": "MBB-BK117",
+      "baseId": 6,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 26,
+      "reg": "I-PEBZ",
+      "model": "MBB-BK117",
+      "baseId": 4,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 27,
+      "reg": "I-PTAH",
+      "model": "MBB-BK117",
+      "baseId": 27,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 28,
+      "reg": "I-PTVR",
+      "model": "MBB-BK117",
+      "baseId": 29,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 29,
+      "reg": "I-RELO",
+      "model": "A109/A119",
+      "baseId": 8,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 30,
+      "reg": "I-RJAH",
+      "model": "AB139/AW139",
+      "baseId": 5,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 31,
+      "reg": "I-ROAV",
+      "model": "AB139/AW139",
+      "baseId": 15,
+      "status": "mel",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 32,
+      "reg": "I-SETH",
+      "model": "MBB-BK117",
+      "baseId": 23,
+      "status": "aog",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 33,
+      "reg": "I-SLND",
+      "model": "MBB-BK117",
+      "baseId": 26,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 34,
+      "reg": "I-SMBA",
+      "model": "AW169",
+      "baseId": 1,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 35,
+      "reg": "I-SRNT",
+      "model": "AB139/AW139",
+      "baseId": 17,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 36,
+      "reg": "I-SUEM",
+      "model": "MBB-BK117",
+      "baseId": 18,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 37,
+      "reg": "I-SWRS",
+      "model": "MBB-BK117",
+      "baseId": 9,
+      "status": "maintenance",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 38,
+      "reg": "I-TIKE",
+      "model": "AB139/AW139",
+      "baseId": 10,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 39,
+      "reg": "I-TOMS",
+      "model": "AB139/AW139",
+      "baseId": 19,
+      "status": "mel",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 40,
+      "reg": "I-VLTN",
+      "model": "AB139/AW139",
+      "baseId": 22,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 41,
+      "reg": "I-ZANL",
+      "model": "MBB-BK117",
+      "baseId": 20,
+      "status": "operative",
+      "statusSince": "2026-04-24T12:27:15.899Z"
+    },
+    {
+      "id": 42,
+      "reg": "I-HEBZ",
+      "model": "MBB-BK117",
+      "baseId": 9,
+      "status": "maintenance",
+      "statusSince": "2026-04-24T12:28:17.254Z"
+    },
+    {
+      "id": 43,
+      "reg": "I-HELS",
+      "model": "MBB-BK117",
+      "baseId": 4,
+      "status": "operative",
+      "statusSince": "2026-04-24T14:52:27.407Z"
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-04-24T15:06:12.052Z",
+      "reg": "I-BKUP",
+      "model": "MBB-BK117",
+      "fromStatus": "operative",
+      "toStatus": "operative",
+      "fromBase": "PADOVA",
+      "toBase": "CAIOLO"
+    },
+    {
+      "date": "2026-04-24T15:05:15.586Z",
+      "reg": "I-BKUP",
+      "model": "MBB-BK117",
+      "fromStatus": "operative",
+      "toStatus": "operative",
+      "fromBase": "CAIOLO",
+      "toBase": "PADOVA"
+    },
+    {
+      "date": "2026-04-24T15:04:58.683Z",
+      "reg": "I-BKUP",
+      "model": "MBB-BK117",
+      "fromStatus": "operative",
+      "toStatus": "operative",
+      "fromBase": "BERGAMO",
+      "toBase": "CAIOLO"
+    },
+    {
+      "date": "2026-04-24T14:52:27.408Z",
+      "reg": "I-HELS",
+      "model": "MBB-BK117",
+      "fromStatus": "—",
+      "toStatus": "operative",
+      "fromBase": "—",
+      "toBase": "BOLZANO"
+    },
+    {
+      "date": "2026-04-24T14:51:27.495Z",
+      "reg": "I-ANUB",
+      "model": "MBB-BK117",
+      "fromStatus": "operative",
+      "toStatus": "operative",
+      "fromBase": "RAVENNA",
+      "toBase": "PARMA"
+    },
+    {
+      "date": "2026-04-24T14:50:49.231Z",
+      "reg": "I-HERC",
+      "model": "AW169",
+      "fromStatus": "operative",
+      "toStatus": "operative",
+      "fromBase": "PESCARA",
+      "toBase": "PADOVA"
+    },
+    {
+      "date": "2026-04-24T12:39:14.432Z",
+      "reg": "I-HECO",
+      "model": "AB139/AW139",
+      "fromStatus": "operative",
+      "toStatus": "operative",
+      "fromBase": "ANCONA",
+      "toBase": "PALERMO"
+    },
+    {
+      "date": "2026-04-24T12:38:55.281Z",
+      "reg": "I-HECO",
+      "model": "AB139/AW139",
+      "fromStatus": "mel",
+      "toStatus": "operative",
+      "fromBase": "PALERMO",
+      "toBase": "ANCONA"
+    },
+    {
+      "date": "2026-04-24T12:28:17.254Z",
+      "reg": "I-HEBZ",
+      "model": "MBB-BK117",
+      "fromStatus": "—",
+      "toStatus": "maintenance",
+      "fromBase": "—",
+      "toBase": "COLICO"
+    }
+  ],
+  "colicoLog": [
+    {
+      "id": 8,
+      "reg": "I-SWRS",
+      "model": "MBB-BK117",
+      "dateIn": "2026-04-20",
+      "dateOut": null,
+      "note": ""
+    },
+    {
+      "id": 7,
+      "reg": "I-BRXA",
+      "model": "MBB-BK117",
+      "dateIn": "2026-04-13",
+      "dateOut": null,
+      "note": "4800H"
+    },
+    {
+      "id": 6,
+      "reg": "I-BBPE",
+      "model": "AW169",
+      "dateIn": "2026-04-06",
+      "dateOut": null,
+      "note": "2 Y"
+    },
+    {
+      "id": 5,
+      "reg": "I-AHTD",
+      "model": "MBB-BK117",
+      "dateIn": "2026-03-23",
+      "dateOut": null,
+      "note": "3Y"
+    },
+    {
+      "id": 4,
+      "reg": "I-KONA",
+      "model": "AW169",
+      "dateIn": "2026-03-16",
+      "dateOut": null,
+      "note": "8Y"
+    },
+    {
+      "id": 3,
+      "reg": "I-TIKE",
+      "model": "AB139/AW139",
+      "dateIn": "2026-04-13",
+      "dateOut": "2026-04-23",
+      "note": "1 Y"
+    },
+    {
+      "id": 2,
+      "reg": "I-HEBZ",
+      "model": "MBB-BK117",
+      "dateIn": "2026-04-10",
+      "dateOut": null,
+      "note": "Facein"
+    },
+    {
+      "id": 1,
+      "reg": "I-MVRK",
+      "model": "AB139/AW139",
+      "dateIn": "2026-04-24",
+      "dateOut": null,
+      "note": "wo 61 300h"
+    }
+  ],
+  "nextBaseId": 34,
+  "nextHeliId": 44,
+  "nextColicoId": 9,
+  "exportDate": "2026-04-24T15:31:51.282Z"
+}
